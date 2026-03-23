@@ -1,0 +1,9 @@
+{
+  "name": "Allie Tutor Prototype",
+  "short_name": "Allie Tutor",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#FFF9F5",
+  "theme_color": "#FFF9F5",
+  "orientation": "portrait"
+}
