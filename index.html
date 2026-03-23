@@ -1312,6 +1312,24 @@ html, body {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+@media (max-width: 768px), (pointer: coarse) {
+  #login {
+    padding-top: max(32px, env(safe-area-inset-top) + 16px);
+  }
+
+  #splash {
+    padding-top: max(32px, env(safe-area-inset-top) + 16px);
+  }
+
+  .onboarding-slide {
+    padding-top: max(32px, env(safe-area-inset-top) + 20px);
+  }
+
+  .chat-header {
+    padding-top: max(16px, env(safe-area-inset-top) + 8px);
+  }
+}
 </style>
 </head>
 <body>
