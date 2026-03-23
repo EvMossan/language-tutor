@@ -1,0 +1,2084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FFF9F5">
+<title>Allie Tutor — Prototype</title>
+<style>
+/* ==================== CSS RESET & BASE ==================== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ==================== DESIGN TOKENS ==================== */
+:root {
+  /* Colors */
+  --accent: #FF8A6C;
+  --accent-light: #FFE8E0;
+  --accent-gradient: linear-gradient(135deg, #FFB5A0 0%, #FF8A6C 100%);
+  --splash-gradient: linear-gradient(180deg, #FFB5A0 0%, #FFF3ED 60%, #FFF9F5 100%);
+  --text-primary: #2D2B55;
+  --text-secondary: #6E6B8A;
+  --text-muted: #A09CB2;
+  --bg: #FFF9F5;
+  --bg-white: #FFFFFF;
+  --card-shadow: 0 2px 12px rgba(45, 43, 85, 0.08);
+  --card-shadow-lg: 0 8px 32px rgba(45, 43, 85, 0.12);
+  --success: #4CAF82;
+  --warning: #F5A623;
+  --danger: #E85D5D;
+  --overlay: rgba(45, 43, 85, 0.4);
+
+  /* Typography */
+  --font: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+  --text-4xl: 32px;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Animation */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 200ms;
+  --duration-normal: 300ms;
+  --duration-slow: 400ms;
+}
+
+/* ==================== PAGE LAYOUT ==================== */
+body {
+  font-family: var(--font);
+  background: #F0EDE8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ==================== PHONE FRAME ==================== */
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  background: var(--bg);
+  border-radius: 44px;
+  box-shadow: 0 0 0 3px #1a1a2e, 0 0 0 6px #2a2a3e, var(--card-shadow-lg);
+  position: relative;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+@supports (height: 100dvh) {
+  .phone-frame {
+    max-height: 100dvh;
+  }
+}
+
+/* Status bar */
+.status-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px 0;
+  z-index: 100;
+  transition: color var(--duration-normal) var(--ease);
+}
+.status-bar.light { color: white; }
+.status-bar.dark { color: var(--text-primary); }
+.status-time { font-size: var(--text-sm); font-weight: 600; }
+.status-icons { display: flex; gap: 6px; align-items: center; }
+.status-icons svg { width: 16px; height: 16px; }
+
+/* Dynamic island / notch */
+.dynamic-island {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 34px;
+  background: #1a1a2e;
+  border-radius: 20px;
+  z-index: 101;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  body {
+    background: var(--bg);
+    display: block;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .phone-frame {
+    width: 100vw;
+    width: 100dvw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .status-bar {
+    padding-top: max(14px, env(safe-area-inset-top));
+    padding-left: max(20px, env(safe-area-inset-left) + 20px);
+    padding-right: max(20px, env(safe-area-inset-right) + 20px);
+  }
+
+  .dynamic-island {
+    top: max(12px, env(safe-area-inset-top) + 12px);
+  }
+
+  .screen.tab-screen {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+
+  #chat.tab-screen {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .tab-bar {
+    height: calc(84px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ==================== SCREEN CONTAINER ==================== */
+.screen-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--ease), transform var(--duration-normal) var(--ease);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+.screen::-webkit-scrollbar { display: none; }
+.screen.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Tab content screens have padding for tab bar */
+.screen.tab-screen {
+  padding-bottom: 84px;
+}
+#chat.tab-screen {
+  padding-bottom: 0;
+}
+
+/* ==================== TAB BAR ==================== */
+.tab-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 84px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(45, 43, 85, 0.06);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  padding-top: 10px;
+  z-index: 50;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity var(--duration-normal) var(--ease), transform var(--duration-normal) var(--ease);
+}
+.tab-bar.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 16px;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--duration-fast) var(--ease);
+}
+.tab-item:active { transform: scale(0.92); }
+.tab-item svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--text-muted);
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke var(--duration-fast) var(--ease);
+}
+.tab-item span {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--ease);
+}
+.tab-item.active svg { stroke: var(--accent); }
+.tab-item.active span { color: var(--accent); }
+
+/* ==================== UTILITY CLASSES ==================== */
+.card {
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: var(--space-md);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid transparent;
+  background: var(--bg-white);
+  color: var(--text-secondary);
+  box-shadow: var(--card-shadow);
+  transition: all var(--duration-fast) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.pill:active { transform: scale(0.95); }
+.pill.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  box-shadow: 0 4px 16px rgba(255, 138, 108, 0.3);
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--accent-gradient);
+  color: white;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255, 138, 108, 0.35);
+  transition: all var(--duration-fast) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-primary:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 12px rgba(255, 138, 108, 0.25);
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 24px;
+  border: 2px solid rgba(45, 43, 85, 0.1);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-secondary:active { transform: scale(0.97); background: rgba(45, 43, 85, 0.03); }
+
+/* ==================== LOGIN SCREEN ==================== */
+#login {
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px var(--space-lg) var(--space-2xl);
+}
+.login-allie { margin-bottom: var(--space-lg); }
+.login-title {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  margin-bottom: var(--space-xs);
+}
+.login-subtitle {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xl);
+}
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.login-field {
+  width: 100%;
+  padding: 14px var(--space-md);
+  border: 2px solid rgba(45, 43, 85, 0.1);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-family: var(--font);
+  background: var(--bg-white);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease);
+}
+.login-field-fake {
+  color: var(--text-primary);
+  user-select: none;
+  cursor: default;
+}
+.login-field-password {
+  font-size: var(--text-xl);
+  letter-spacing: 2px;
+}
+.login-forgot {
+  font-size: var(--text-sm);
+  color: var(--accent);
+  font-weight: 600;
+  text-align: right;
+  cursor: pointer;
+  margin-top: -8px;
+}
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-sm) 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(45, 43, 85, 0.1);
+}
+.login-footer {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: var(--space-md);
+}
+.login-footer a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ==================== SPLASH SCREEN ==================== */
+#splash {
+  background: var(--splash-gradient);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+}
+#splash .allie-lg { animation: splashFadeIn 800ms var(--ease) both; }
+#splash .brand-name {
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  animation: splashFadeIn 800ms var(--ease) 200ms both;
+}
+#splash .brand-tagline {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  font-weight: 500;
+  animation: splashFadeIn 800ms var(--ease) 400ms both;
+}
+
+@keyframes splashFadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== ONBOARDING ==================== */
+#onboarding {
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.onboarding-slides {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  padding-top: 70px;
+}
+
+.onboarding-slide {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 70px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-xl) var(--space-lg);
+  opacity: 0;
+  transform: translateX(60px);
+  transition: all var(--duration-normal) var(--ease);
+}
+.onboarding-slide.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+.onboarding-slide.exit-left {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+
+.onboarding-slide h2 {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-sm);
+  text-align: center;
+}
+.onboarding-slide p {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.5;
+  max-width: 300px;
+}
+
+.level-pills, .goal-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: center;
+  margin-top: var(--space-xl);
+}
+
+.goal-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--bg-white);
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all var(--duration-fast) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.goal-card:active { transform: scale(0.98); }
+.goal-card.active {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+.goal-card .goal-icon { font-size: 28px; }
+.goal-card .goal-text {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.onboarding-footer {
+  padding: var(--space-lg);
+  padding-bottom: var(--space-2xl);
+}
+
+.onboarding-dots {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+  margin-bottom: var(--space-lg);
+}
+.onboarding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(45, 43, 85, 0.15);
+  transition: all var(--duration-fast) var(--ease);
+}
+.onboarding-dot.active {
+  width: 24px;
+  border-radius: 4px;
+  background: var(--accent);
+}
+
+/* ==================== CHAT SCREEN ==================== */
+#chat {
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 60px var(--space-lg) var(--space-md);
+  background: rgba(255, 249, 245, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 10;
+  border-bottom: 1px solid rgba(45, 43, 85, 0.06);
+}
+
+/* Topic chips */
+.topic-chips {
+  display: flex;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  flex-shrink: 0;
+}
+.topic-chips::-webkit-scrollbar { display: none; }
+.topic-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 2px solid rgba(45, 43, 85, 0.08);
+  background: var(--bg-white);
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.topic-chip:active { transform: scale(0.95); }
+.topic-chip.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  box-shadow: 0 2px 12px rgba(255, 138, 108, 0.25);
+}
+
+/* Translate button on messages */
+.message-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.message-translate {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-top: 4px;
+  padding: 2px 0;
+  transition: color var(--duration-fast) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.message-translate:hover,
+.message-translate:active { color: var(--accent); }
+.message-translate svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.message-translation {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 4px;
+  padding: 6px 10px;
+  background: rgba(45, 43, 85, 0.04);
+  border-radius: var(--radius-sm);
+  display: none;
+  animation: fadeIn var(--duration-fast) var(--ease);
+}
+.message-translation.visible { display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.chat-header-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.chat-header-info h3 {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chat-header-info h3 .online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  display: inline-block;
+}
+.chat-header-info span {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.chat-messages {
+  flex: 1;
+  padding: var(--space-md) var(--space-lg);
+  padding-bottom: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.message {
+  display: flex;
+  gap: var(--space-sm);
+  max-width: 85%;
+  animation: messageIn var(--duration-normal) var(--ease) both;
+}
+.message.tutor { align-self: flex-start; }
+.message.user { align-self: flex-end; flex-direction: row-reverse; }
+
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+.message.user .message-avatar { display: none; }
+
+.message-bubble {
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+.message.tutor .message-bubble {
+  background: var(--bg-white);
+  box-shadow: var(--card-shadow);
+  border-bottom-left-radius: 4px;
+}
+.message.user .message-bubble {
+  background: var(--accent-light);
+  color: var(--text-primary);
+  border-bottom-right-radius: 4px;
+}
+.message-bubble strong { color: var(--accent); font-weight: 700; }
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 16px 20px;
+  align-items: center;
+}
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  animation: typingBounce 1.4s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-8px); opacity: 1; }
+}
+
+@keyframes messageIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Chat input */
+.chat-input-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  padding-bottom: 92px;
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.chat-input {
+  flex: 1;
+  padding: 12px 18px;
+  border: 2px solid rgba(45, 43, 85, 0.08);
+  border-radius: var(--radius-full);
+  font-size: var(--text-base);
+  font-family: var(--font);
+  background: var(--bg-white);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease);
+}
+.chat-input::placeholder { color: var(--text-muted); }
+.chat-input:focus { border-color: var(--accent); }
+
+.mic-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(255, 138, 108, 0.3);
+  transition: all var(--duration-fast) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.mic-button:active { transform: scale(0.9); }
+.mic-button svg { width: 22px; height: 22px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ==================== VOICE OVERLAY ==================== */
+.voice-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--ease);
+}
+.voice-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.voice-panel {
+  background: var(--bg-white);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl) var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  width: 300px;
+  box-shadow: var(--card-shadow-lg);
+  transform: translateY(40px);
+  transition: transform var(--duration-normal) var(--ease);
+}
+.voice-overlay.active .voice-panel { transform: translateY(0); }
+
+.voice-avatar-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.voice-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0.3;
+  animation: voicePulse 2s infinite var(--ease);
+}
+.voice-ring:nth-child(1) { width: 100%; height: 100%; }
+.voice-ring:nth-child(2) { width: 130%; height: 130%; animation-delay: 0.4s; }
+.voice-ring:nth-child(3) { width: 160%; height: 160%; animation-delay: 0.8s; }
+
+@keyframes voicePulse {
+  0% { transform: scale(0.8); opacity: 0.4; }
+  50% { transform: scale(1); opacity: 0.15; }
+  100% { transform: scale(0.8); opacity: 0.4; }
+}
+
+.voice-status {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.voice-stop-btn {
+  padding: 12px 32px;
+  border-radius: var(--radius-full);
+  border: 2px solid rgba(45, 43, 85, 0.1);
+  background: transparent;
+  font-size: var(--text-base);
+  font-weight: 600;
+  font-family: var(--font);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+}
+.voice-stop-btn:active { transform: scale(0.95); background: rgba(45, 43, 85, 0.03); }
+
+/* ==================== PROGRESS SCREEN ==================== */
+#progress {
+  background: var(--bg);
+  padding: 70px var(--space-lg) var(--space-lg);
+}
+#progress h2 {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  margin-bottom: var(--space-lg);
+}
+
+.progress-ring-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-lg);
+}
+.progress-ring-wrapper {
+  position: relative;
+  width: 160px;
+  height: 160px;
+}
+.progress-ring-wrapper svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.progress-ring-bg {
+  fill: none;
+  stroke: rgba(45, 43, 85, 0.06);
+  stroke-width: 10;
+}
+.progress-ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 408;
+  stroke-dashoffset: 408;
+  transition: stroke-dashoffset 1s var(--ease);
+}
+.progress-ring-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.progress-ring-text .percent {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.progress-ring-text .label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Bar chart */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 120px;
+  padding: var(--space-md);
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  margin-bottom: var(--space-lg);
+}
+.bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+  flex: 1;
+  height: 100%;
+}
+.bar {
+  width: 28px;
+  border-radius: 6px 6px 0 0;
+  background: var(--accent-gradient);
+  transition: height 600ms var(--ease);
+  height: 0;
+  min-height: 0;
+}
+.bar-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Stat cards */
+.stat-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+.stat-card {
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.stat-card .stat-icon { font-size: 24px; }
+.stat-card .stat-value {
+  font-size: var(--text-xl);
+  font-weight: 800;
+}
+.stat-card .stat-label {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* ==================== WORDS SCREEN ==================== */
+#words {
+  background: var(--bg);
+  padding: 70px var(--space-lg) var(--space-lg);
+}
+#words h2 {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  margin-bottom: var(--space-md);
+}
+
+.words-tabs {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+.word-tab {
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font);
+  background: transparent;
+  color: var(--text-muted);
+  transition: all var(--duration-fast) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.word-tab.active {
+  background: var(--text-primary);
+  color: white;
+}
+
+.word-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.word-card {
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: var(--space-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+.word-card:active { transform: scale(0.98); }
+
+.word-card-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.word-de {
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+.word-en {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.word-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.word-dot.green { background: var(--success); }
+.word-dot.yellow { background: var(--warning); }
+.word-dot.red { background: var(--danger); }
+
+.word-example {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--duration-fast) var(--ease), padding var(--duration-fast) var(--ease);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-style: italic;
+}
+.word-card.expanded .word-example {
+  max-height: 80px;
+  padding-top: var(--space-md);
+  border-top: 1px solid rgba(45, 43, 85, 0.06);
+  margin-top: var(--space-md);
+}
+
+/* ==================== PROFILE SCREEN ==================== */
+#profile {
+  background: var(--bg);
+  padding: 70px var(--space-lg) var(--space-lg);
+}
+
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+}
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--accent);
+}
+.profile-name {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+}
+.profile-subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.profile-info-cards {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+.profile-info-card {
+  flex: 1;
+  background: var(--bg-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-shadow);
+  padding: var(--space-md);
+  text-align: center;
+}
+.profile-info-card .info-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-bottom: var(--space-xs);
+}
+.profile-info-card .info-value {
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.profile-menu {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+  border-bottom: 1px solid rgba(45, 43, 85, 0.04);
+}
+.profile-menu-item:last-child { border-bottom: none; }
+.profile-menu-item:active { background: rgba(45, 43, 85, 0.02); }
+.profile-menu-item .menu-label {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+.profile-menu-item .menu-label.danger { color: var(--danger); }
+.profile-menu-item .menu-chevron {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ==================== PREMIUM SHEET ==================== */
+.premium-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--overlay);
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--ease);
+}
+.premium-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.premium-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-white);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: var(--space-xl) var(--space-lg) var(--space-2xl);
+  transform: translateY(100%);
+  transition: transform var(--duration-slow) var(--ease);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+}
+.premium-overlay.active .premium-sheet { transform: translateY(0); }
+
+.premium-sheet .sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(45, 43, 85, 0.12);
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.premium-sheet h2 {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  text-align: center;
+}
+
+.premium-features {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.premium-feature {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+.premium-feature .feature-check {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(76, 175, 130, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--success);
+  font-size: var(--text-lg);
+}
+.premium-feature .feature-text {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.premium-price {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* ==================== ALLIE CHARACTER ==================== */
+.allie-container { display: inline-flex; align-items: center; justify-content: center; }
+.allie-lg .allie-container { width: 180px; height: 180px; }
+.allie-md .allie-container { width: 100px; height: 100px; }
+.allie-sm .allie-container { width: 40px; height: 40px; }
+
+/* ==================== STAGGERED ANIMATIONS ==================== */
+.stagger-in > * {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.stagger-in.animate > * {
+  animation: staggerFadeIn var(--duration-normal) var(--ease) both;
+}
+.stagger-in.animate > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-in.animate > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-in.animate > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-in.animate > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-in.animate > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-in.animate > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-in.animate > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-in.animate > *:nth-child(8) { animation-delay: 420ms; }
+
+@keyframes staggerFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== PHONE FRAME ==================== -->
+<div class="phone-frame">
+  <div class="dynamic-island"></div>
+  <div class="status-bar light">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="2.5" height="5" rx="0.5"/><rect x="5" y="7" width="2.5" height="8" rx="0.5"/><rect x="9" y="4" width="2.5" height="11" rx="0.5"/><rect x="13" y="1" width="2.5" height="14" rx="0.5"/></svg>
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3C5 3 2.4 4.3 1 6.5L2.5 8c1-1.5 3-2.5 5.5-2.5s4.5 1 5.5 2.5L15 6.5C13.6 4.3 11 3 8 3zm0 5c-1.7 0-3.2.7-4 1.8L5.5 11c.5-.7 1.5-1.2 2.5-1.2s2 .5 2.5 1.2l1.5-1.2C11.2 8.7 9.7 8 8 8zm0 4a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>
+      <svg viewBox="0 0 20 12" fill="currentColor"><rect x="0" y="1" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2" y="3" width="10" height="6" rx="1"/><rect x="17" y="4" width="2.5" height="4" rx="0.5"/></svg>
+    </div>
+  </div>
+
+  <div class="screen-container">
+
+    <!-- ===== SPLASH ===== -->
+    <div id="splash" class="screen active">
+      <div class="allie-lg">
+        <div class="allie-container">
+          <svg width="180" height="180" viewBox="0 0 200 200" fill="none">
+            <!-- Hair back -->
+            <ellipse cx="100" cy="82" rx="58" ry="60" fill="#8B5E3C"/>
+            <!-- Ponytail -->
+            <path d="M145 55c15 5 25 20 28 42s-2 35-12 42c-3-12-5-30-4-48s4-28 8-36z" fill="#8B5E3C"/>
+            <path d="M148 58c12 5 20 18 22 38s-1 30-8 36" stroke="#7A4F30" stroke-width="2" fill="none"/>
+            <!-- Face -->
+            <ellipse cx="100" cy="90" rx="46" ry="50" fill="#FDDCB5"/>
+            <!-- Hair front -->
+            <path d="M54 75c0-30 20-55 46-55s46 25 46 55c0 5-2 8-5 8-8-25-25-40-41-40S67 58 59 83c-3 0-5-3-5-8z" fill="#A0693D"/>
+            <!-- Hair highlight -->
+            <path d="M70 45c10-12 22-18 35-16" stroke="#BF8650" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.5"/>
+            <!-- Eyes -->
+            <ellipse cx="82" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+            <ellipse cx="118" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+            <!-- Eye shine -->
+            <circle cx="84" cy="88" r="1.8" fill="white"/>
+            <circle cx="120" cy="88" r="1.8" fill="white"/>
+            <!-- Eyebrows -->
+            <path d="M74 80c3-4 8-5 13-3" stroke="#7A4F30" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <path d="M113 77c5-2 10-1 13 3" stroke="#7A4F30" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <!-- Nose -->
+            <path d="M98 98c2 3 4 3 5 0" stroke="#E8B990" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <!-- Mouth - friendly smile -->
+            <path d="M88 108c5 6 18 6 24 0" stroke="#D4785F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <!-- Blush -->
+            <ellipse cx="74" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+            <ellipse cx="126" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+            <!-- Neck -->
+            <rect x="90" y="135" width="20" height="12" rx="4" fill="#FDDCB5"/>
+            <!-- Sweater -->
+            <path d="M60 200v-48c0-12 18-20 40-20s40 8 40 20v48H60z" fill="#2D2B55"/>
+            <!-- Sweater neckline -->
+            <path d="M82 140c6 6 12 10 18 10s12-4 18-10" stroke="#1a1a3e" stroke-width="2" fill="none"/>
+            <!-- Sweater texture lines -->
+            <path d="M75 160h50M75 172h50M75 184h50" stroke="#3D3B65" stroke-width="0.8" opacity="0.3"/>
+          </svg>
+        </div>
+      </div>
+      <div class="brand-name">Allie Tutor</div>
+      <div class="brand-tagline">Your AI German Tutor</div>
+    </div>
+
+    <!-- ===== LOGIN ===== -->
+    <div id="login" class="screen">
+      <div class="login-allie">
+        <div class="allie-container">
+          <svg width="100" height="100" viewBox="0 0 200 200" fill="none">
+            <ellipse cx="100" cy="82" rx="58" ry="60" fill="#8B5E3C"/>
+            <path d="M145 55c15 5 25 20 28 42s-2 35-12 42c-3-12-5-30-4-48s4-28 8-36z" fill="#8B5E3C"/>
+            <ellipse cx="100" cy="90" rx="46" ry="50" fill="#FDDCB5"/>
+            <path d="M54 75c0-30 20-55 46-55s46 25 46 55c0 5-2 8-5 8-8-25-25-40-41-40S67 58 59 83c-3 0-5-3-5-8z" fill="#A0693D"/>
+            <ellipse cx="82" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+            <ellipse cx="118" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+            <circle cx="84" cy="88" r="1.8" fill="white"/>
+            <circle cx="120" cy="88" r="1.8" fill="white"/>
+            <path d="M74 80c3-4 8-5 13-3" stroke="#7A4F30" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <path d="M113 77c5-2 10-1 13 3" stroke="#7A4F30" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <path d="M98 98c2 3 4 3 5 0" stroke="#E8B990" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <path d="M88 108c5 6 18 6 24 0" stroke="#D4785F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <ellipse cx="74" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+            <ellipse cx="126" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+            <rect x="90" y="135" width="20" height="12" rx="4" fill="#FDDCB5"/>
+            <path d="M60 200v-48c0-12 18-20 40-20s40 8 40 20v48H60z" fill="#2D2B55"/>
+          </svg>
+        </div>
+      </div>
+      <div class="login-title">Welcome back</div>
+      <div class="login-subtitle">Sign in to continue learning</div>
+      <div class="login-form">
+        <div class="login-field login-field-fake">max.mueller@gmail.com</div>
+        <div class="login-field login-field-fake login-field-password">••••••••</div>
+        <div class="login-forgot">Forgot password?</div>
+        <button class="btn-primary" type="button" id="loginSignIn">Sign in</button>
+        <div class="login-divider">or</div>
+        <button class="btn-secondary" type="button" id="loginCreateAccount">Create account</button>
+      </div>
+      <div class="login-footer">By continuing, you agree to our <a>Terms</a> & <a>Privacy Policy</a></div>
+    </div>
+
+    <!-- ===== ONBOARDING ===== -->
+    <div id="onboarding" class="screen">
+      <div class="onboarding-slides">
+        <!-- Slide 1: Meet Allie -->
+        <div class="onboarding-slide active" data-slide="0">
+          <div class="allie-md">
+            <div class="allie-container">
+              <svg width="100" height="100" viewBox="0 0 200 200" fill="none">
+                <ellipse cx="100" cy="82" rx="58" ry="60" fill="#8B5E3C"/>
+                <path d="M145 55c15 5 25 20 28 42s-2 35-12 42c-3-12-5-30-4-48s4-28 8-36z" fill="#8B5E3C"/>
+                <ellipse cx="100" cy="90" rx="46" ry="50" fill="#FDDCB5"/>
+                <path d="M54 75c0-30 20-55 46-55s46 25 46 55c0 5-2 8-5 8-8-25-25-40-41-40S67 58 59 83c-3 0-5-3-5-8z" fill="#A0693D"/>
+                <ellipse cx="82" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+                <ellipse cx="118" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+                <circle cx="84" cy="88" r="1.8" fill="white"/>
+                <circle cx="120" cy="88" r="1.8" fill="white"/>
+                <path d="M74 80c3-4 8-5 13-3" stroke="#7A4F30" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <path d="M113 77c5-2 10-1 13 3" stroke="#7A4F30" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <path d="M98 98c2 3 4 3 5 0" stroke="#E8B990" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                <path d="M88 108c5 6 18 6 24 0" stroke="#D4785F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <ellipse cx="74" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+                <ellipse cx="126" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+                <rect x="90" y="135" width="20" height="12" rx="4" fill="#FDDCB5"/>
+                <path d="M60 200v-48c0-12 18-20 40-20s40 8 40 20v48H60z" fill="#2D2B55"/>
+              </svg>
+            </div>
+          </div>
+          <h2>Meet Allie</h2>
+          <p>I'll help you practice German every day through natural conversation. Let's make learning feel easy.</p>
+        </div>
+
+        <!-- Slide 2: Your Level -->
+        <div class="onboarding-slide" data-slide="1">
+          <div style="font-size: 64px; margin-bottom: 8px;">📚</div>
+          <h2>Your Level</h2>
+          <p>What's your current German level?</p>
+          <div class="level-pills">
+            <div class="pill" onclick="selectPill(this)">A1</div>
+            <div class="pill" onclick="selectPill(this)">A2</div>
+            <div class="pill active" onclick="selectPill(this)">B1</div>
+            <div class="pill" onclick="selectPill(this)">B2</div>
+          </div>
+        </div>
+
+        <!-- Slide 3: Your Goal -->
+        <div class="onboarding-slide" data-slide="2">
+          <div style="font-size: 64px; margin-bottom: 8px;">🎯</div>
+          <h2>Your Goal</h2>
+          <p>What would you like to focus on?</p>
+          <div class="goal-options">
+            <div class="goal-card active" onclick="selectGoal(this)">
+              <div class="goal-icon">🗣️</div>
+              <div class="goal-text">Speaking confidence</div>
+            </div>
+            <div class="goal-card" onclick="selectGoal(this)">
+              <div class="goal-icon">✍️</div>
+              <div class="goal-text">Grammar</div>
+            </div>
+            <div class="goal-card" onclick="selectGoal(this)">
+              <div class="goal-icon">💡</div>
+              <div class="goal-text">Vocabulary</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="onboarding-footer">
+        <div class="onboarding-dots">
+          <div class="onboarding-dot active"></div>
+          <div class="onboarding-dot"></div>
+          <div class="onboarding-dot"></div>
+        </div>
+        <button class="btn-primary" onclick="nextOnboardingSlide()">Next</button>
+      </div>
+    </div>
+
+    <!-- ===== CHAT ===== -->
+    <div id="chat" class="screen tab-screen">
+      <div class="chat-header">
+        <div class="chat-header-avatar">
+          <svg width="44" height="44" viewBox="0 0 200 200" fill="none">
+            <ellipse cx="100" cy="82" rx="58" ry="60" fill="#8B5E3C"/>
+            <ellipse cx="100" cy="90" rx="46" ry="50" fill="#FDDCB5"/>
+            <path d="M54 75c0-30 20-55 46-55s46 25 46 55c0 5-2 8-5 8-8-25-25-40-41-40S67 58 59 83c-3 0-5-3-5-8z" fill="#A0693D"/>
+            <ellipse cx="82" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+            <ellipse cx="118" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+            <circle cx="84" cy="88" r="1.8" fill="white"/>
+            <circle cx="120" cy="88" r="1.8" fill="white"/>
+            <path d="M88 108c5 6 18 6 24 0" stroke="#D4785F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <ellipse cx="74" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+            <ellipse cx="126" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+            <path d="M60 200v-48c0-12 18-20 40-20s40 8 40 20v48H60z" fill="#2D2B55"/>
+          </svg>
+        </div>
+        <div class="chat-header-info">
+          <h3>Allie <span class="online-dot"></span></h3>
+          <span>German Tutor</span>
+        </div>
+      </div>
+
+      <div class="topic-chips">
+        <div class="topic-chip active" onclick="selectTopic(this)">🍽️ Food</div>
+        <div class="topic-chip" onclick="selectTopic(this)">🏠 Daily life</div>
+        <div class="topic-chip" onclick="selectTopic(this)">✈️ Travel</div>
+        <div class="topic-chip" onclick="selectTopic(this)">🛒 Shopping</div>
+        <div class="topic-chip" onclick="selectTopic(this)">💼 Work</div>
+      </div>
+
+      <div class="chat-messages stagger-in" id="chatMessages">
+        <div class="message tutor" style="animation-delay: 0ms">
+          <div class="message-avatar">
+            <svg width="32" height="32" viewBox="0 0 200 200" fill="none">
+              <ellipse cx="100" cy="82" rx="58" ry="60" fill="#8B5E3C"/>
+              <ellipse cx="100" cy="90" rx="46" ry="50" fill="#FDDCB5"/>
+              <path d="M54 75c0-30 20-55 46-55s46 25 46 55c0 5-2 8-5 8-8-25-25-40-41-40S67 58 59 83c-3 0-5-3-5-8z" fill="#A0693D"/>
+              <ellipse cx="82" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+              <ellipse cx="118" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+              <circle cx="84" cy="88" r="1.8" fill="white"/>
+              <circle cx="120" cy="88" r="1.8" fill="white"/>
+              <path d="M88 108c5 6 18 6 24 0" stroke="#D4785F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <path d="M60 200v-48c0-12 18-20 40-20s40 8 40 20v48H60z" fill="#2D2B55"/>
+            </svg>
+          </div>
+          <div class="message-content">
+            <div class="message-bubble">Hallo! 👋 Let's practice ordering food in German today. How would you say <em>"I would like a coffee"</em>?</div>
+            <div class="message-translate" onclick="toggleTranslation(this)"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04M18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12m-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg> Translate</div>
+            <div class="message-translation">Привет! 👋 Давай попрактикуем заказ еды на немецком. Как ты скажешь «Я бы хотел кофе»?</div>
+          </div>
+        </div>
+
+        <div class="message user" style="animation-delay: 100ms">
+          <div class="message-bubble">Ich möchte ein Kaffee</div>
+        </div>
+
+        <div class="message tutor" style="animation-delay: 200ms">
+          <div class="message-avatar">
+            <svg width="32" height="32" viewBox="0 0 200 200" fill="none">
+              <ellipse cx="100" cy="82" rx="58" ry="60" fill="#8B5E3C"/>
+              <ellipse cx="100" cy="90" rx="46" ry="50" fill="#FDDCB5"/>
+              <path d="M54 75c0-30 20-55 46-55s46 25 46 55c0 5-2 8-5 8-8-25-25-40-41-40S67 58 59 83c-3 0-5-3-5-8z" fill="#A0693D"/>
+              <ellipse cx="82" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+              <ellipse cx="118" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+              <circle cx="84" cy="88" r="1.8" fill="white"/>
+              <circle cx="120" cy="88" r="1.8" fill="white"/>
+              <path d="M88 108c5 6 18 6 24 0" stroke="#D4785F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <path d="M60 200v-48c0-12 18-20 40-20s40 8 40 20v48H60z" fill="#2D2B55"/>
+            </svg>
+          </div>
+          <div class="message-content">
+            <div class="message-bubble">Almost! It's <strong>einen Kaffee</strong> — masculine accusative. Try the full sentence: <em>"Ich möchte einen Kaffee, bitte."</em></div>
+            <div class="message-translate" onclick="toggleTranslation(this)"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04M18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12m-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg> Translate</div>
+            <div class="message-translation">Почти! Правильно <strong>einen Kaffee</strong> — мужской винительный падеж. Попробуй полное предложение: «Ich möchte einen Kaffee, bitte.»</div>
+          </div>
+        </div>
+
+        <div class="message user" style="animation-delay: 300ms">
+          <div class="message-bubble">Ich möchte einen Kaffee, bitte</div>
+        </div>
+
+        <div class="message tutor" style="animation-delay: 400ms">
+          <div class="message-avatar">
+            <svg width="32" height="32" viewBox="0 0 200 200" fill="none">
+              <ellipse cx="100" cy="82" rx="58" ry="60" fill="#8B5E3C"/>
+              <ellipse cx="100" cy="90" rx="46" ry="50" fill="#FDDCB5"/>
+              <path d="M54 75c0-30 20-55 46-55s46 25 46 55c0 5-2 8-5 8-8-25-25-40-41-40S67 58 59 83c-3 0-5-3-5-8z" fill="#A0693D"/>
+              <ellipse cx="82" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+              <ellipse cx="118" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+              <circle cx="84" cy="88" r="1.8" fill="white"/>
+              <circle cx="120" cy="88" r="1.8" fill="white"/>
+              <path d="M88 108c5 6 18 6 24 0" stroke="#D4785F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <path d="M60 200v-48c0-12 18-20 40-20s40 8 40 20v48H60z" fill="#2D2B55"/>
+            </svg>
+          </div>
+          <div class="message-content">
+            <div class="message-bubble">Perfekt! 🎉 Great use of the accusative case. Now, how about ordering some cake too? Try: <em>"I would also like a piece of cake."</em></div>
+            <div class="message-translate" onclick="toggleTranslation(this)"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04M18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12m-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg> Translate</div>
+            <div class="message-translation">Отлично! 🎉 Хорошее использование винительного падежа. А теперь давай закажем ещё торт? Попробуй: «Я бы ещё хотел кусочек торта.»</div>
+          </div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div class="message tutor" style="animation-delay: 500ms">
+          <div class="message-avatar">
+            <svg width="32" height="32" viewBox="0 0 200 200" fill="none">
+              <ellipse cx="100" cy="82" rx="58" ry="60" fill="#8B5E3C"/>
+              <ellipse cx="100" cy="90" rx="46" ry="50" fill="#FDDCB5"/>
+              <path d="M54 75c0-30 20-55 46-55s46 25 46 55c0 5-2 8-5 8-8-25-25-40-41-40S67 58 59 83c-3 0-5-3-5-8z" fill="#A0693D"/>
+              <ellipse cx="82" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+              <ellipse cx="118" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+              <path d="M88 108c5 6 18 6 24 0" stroke="#D4785F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <path d="M60 200v-48c0-12 18-20 40-20s40 8 40 20v48H60z" fill="#2D2B55"/>
+            </svg>
+          </div>
+          <div class="message-bubble">
+            <div class="typing-indicator">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-bar">
+        <input type="text" class="chat-input" placeholder="Type your answer..." readonly>
+        <button class="mic-button" onclick="showVoiceOverlay()">
+          <svg viewBox="0 0 24 24"><path d="M12 1a4 4 0 00-4 4v7a4 4 0 008 0V5a4 4 0 00-4-4z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== PROGRESS ===== -->
+    <div id="progress" class="screen tab-screen">
+      <h2>Your Progress</h2>
+
+      <div class="progress-ring-container">
+        <div class="progress-ring-wrapper">
+          <svg viewBox="0 0 140 140">
+            <circle class="progress-ring-bg" cx="70" cy="70" r="65"/>
+            <circle class="progress-ring-fill" id="progressRing" cx="70" cy="70" r="65"/>
+          </svg>
+          <div class="progress-ring-text">
+            <div class="percent">72%</div>
+            <div class="label">Weekly goal</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bar-chart" id="barChart">
+        <div class="bar-item"><div class="bar" data-height="40%"></div><div class="bar-label">Mon</div></div>
+        <div class="bar-item"><div class="bar" data-height="65%"></div><div class="bar-label">Tue</div></div>
+        <div class="bar-item"><div class="bar" data-height="30%"></div><div class="bar-label">Wed</div></div>
+        <div class="bar-item"><div class="bar" data-height="80%"></div><div class="bar-label">Thu</div></div>
+        <div class="bar-item"><div class="bar" data-height="90%"></div><div class="bar-label">Fri</div></div>
+        <div class="bar-item"><div class="bar" data-height="50%"></div><div class="bar-label">Sat</div></div>
+        <div class="bar-item"><div class="bar" data-height="20%"></div><div class="bar-label">Sun</div></div>
+      </div>
+
+      <div class="stat-cards stagger-in" id="statCards">
+        <div class="stat-card">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-value">5 days</div>
+          <div class="stat-label">Current streak</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📖</div>
+          <div class="stat-value">124</div>
+          <div class="stat-label">Words learned</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-value">B1</div>
+          <div class="stat-label">Current level</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏱️</div>
+          <div class="stat-value">38 min</div>
+          <div class="stat-label">This week</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== WORDS ===== -->
+    <div id="words" class="screen tab-screen">
+      <h2>Your Vocabulary</h2>
+
+      <div class="words-tabs">
+        <button class="word-tab active" onclick="selectWordTab(this)">Recent</button>
+        <button class="word-tab" onclick="selectWordTab(this)">Review</button>
+      </div>
+
+      <div class="word-list stagger-in" id="wordList">
+        <div class="word-card" onclick="toggleWord(this)">
+          <div class="word-card-main">
+            <div><div class="word-de">der Kaffee</div><div class="word-en">coffee</div></div>
+            <div class="word-dot green"></div>
+          </div>
+          <div class="word-example">"Ich möchte einen Kaffee, bitte." — I would like a coffee, please.</div>
+        </div>
+
+        <div class="word-card" onclick="toggleWord(this)">
+          <div class="word-card-main">
+            <div><div class="word-de">bestellen</div><div class="word-en">to order</div></div>
+            <div class="word-dot green"></div>
+          </div>
+          <div class="word-example">"Kann ich bitte bestellen?" — Can I order, please?</div>
+        </div>
+
+        <div class="word-card" onclick="toggleWord(this)">
+          <div class="word-card-main">
+            <div><div class="word-de">die Rechnung</div><div class="word-en">the bill</div></div>
+            <div class="word-dot yellow"></div>
+          </div>
+          <div class="word-example">"Die Rechnung, bitte." — The bill, please.</div>
+        </div>
+
+        <div class="word-card" onclick="toggleWord(this)">
+          <div class="word-card-main">
+            <div><div class="word-de">sprechen</div><div class="word-en">to speak</div></div>
+            <div class="word-dot green"></div>
+          </div>
+          <div class="word-example">"Sprechen Sie Englisch?" — Do you speak English?</div>
+        </div>
+
+        <div class="word-card" onclick="toggleWord(this)">
+          <div class="word-card-main">
+            <div><div class="word-de">der Kuchen</div><div class="word-en">cake</div></div>
+            <div class="word-dot yellow"></div>
+          </div>
+          <div class="word-example">"Ein Stück Kuchen, bitte." — A piece of cake, please.</div>
+        </div>
+
+        <div class="word-card" onclick="toggleWord(this)">
+          <div class="word-card-main">
+            <div><div class="word-de">möchten</div><div class="word-en">would like</div></div>
+            <div class="word-dot red"></div>
+          </div>
+          <div class="word-example">"Was möchten Sie trinken?" — What would you like to drink?</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PROFILE ===== -->
+    <div id="profile" class="screen tab-screen">
+      <div class="profile-header">
+        <div class="profile-avatar">MM</div>
+        <div class="profile-name">Max Müller</div>
+        <div class="profile-subtitle">Learning German since March 2026</div>
+      </div>
+
+      <div class="profile-info-cards">
+        <div class="profile-info-card">
+          <div class="info-label">Language</div>
+          <div class="info-value">German 🇩🇪</div>
+        </div>
+        <div class="profile-info-card">
+          <div class="info-label">Level</div>
+          <div class="info-value">B1</div>
+        </div>
+        <div class="profile-info-card">
+          <div class="info-label">Reminder</div>
+          <div class="info-value">19:00</div>
+        </div>
+      </div>
+
+      <div class="profile-menu">
+        <div class="profile-menu-item" onclick="showPremium()">
+          <span class="menu-label">Allie Premium ✨</span>
+          <span class="menu-chevron">›</span>
+        </div>
+        <div class="profile-menu-item">
+          <span class="menu-label">Notifications</span>
+          <span class="menu-chevron">›</span>
+        </div>
+        <div class="profile-menu-item">
+          <span class="menu-label">Help & Support</span>
+          <span class="menu-chevron">›</span>
+        </div>
+        <div class="profile-menu-item">
+          <span class="menu-label danger">Log out</span>
+          <span class="menu-chevron"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== VOICE OVERLAY ===== -->
+  <div class="voice-overlay" id="voiceOverlay" onclick="hideVoiceOverlay(event)">
+    <div class="voice-panel" onclick="event.stopPropagation()">
+      <div class="voice-avatar-container">
+        <div class="voice-ring"></div>
+        <div class="voice-ring"></div>
+        <div class="voice-ring"></div>
+        <div class="allie-md">
+          <div class="allie-container">
+            <svg width="80" height="80" viewBox="0 0 200 200" fill="none">
+              <ellipse cx="100" cy="82" rx="58" ry="60" fill="#8B5E3C"/>
+              <ellipse cx="100" cy="90" rx="46" ry="50" fill="#FDDCB5"/>
+              <path d="M54 75c0-30 20-55 46-55s46 25 46 55c0 5-2 8-5 8-8-25-25-40-41-40S67 58 59 83c-3 0-5-3-5-8z" fill="#A0693D"/>
+              <ellipse cx="82" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+              <ellipse cx="118" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+              <circle cx="84" cy="88" r="1.8" fill="white"/>
+              <circle cx="120" cy="88" r="1.8" fill="white"/>
+              <path d="M88 108c5 6 18 6 24 0" stroke="#D4785F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <ellipse cx="74" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+              <ellipse cx="126" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+              <path d="M60 200v-48c0-12 18-20 40-20s40 8 40 20v48H60z" fill="#2D2B55"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="voice-status" id="voiceStatus">Listening...</div>
+      <button class="voice-stop-btn" onclick="hideVoiceOverlay(event)">Tap to stop</button>
+    </div>
+  </div>
+
+  <!-- ===== PREMIUM OVERLAY ===== -->
+  <div class="premium-overlay" id="premiumOverlay" onclick="hidePremium(event)">
+    <div class="premium-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <div class="allie-md" style="margin-top: 8px;">
+        <div class="allie-container" style="position: relative;">
+          <svg width="80" height="80" viewBox="0 0 200 200" fill="none">
+            <ellipse cx="100" cy="82" rx="58" ry="60" fill="#8B5E3C"/>
+            <ellipse cx="100" cy="90" rx="46" ry="50" fill="#FDDCB5"/>
+            <path d="M54 75c0-30 20-55 46-55s46 25 46 55c0 5-2 8-5 8-8-25-25-40-41-40S67 58 59 83c-3 0-5-3-5-8z" fill="#A0693D"/>
+            <ellipse cx="82" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+            <ellipse cx="118" cy="90" rx="4.5" ry="5" fill="#2D2B55"/>
+            <circle cx="84" cy="88" r="1.8" fill="white"/>
+            <circle cx="120" cy="88" r="1.8" fill="white"/>
+            <path d="M88 108c5 6 18 6 24 0" stroke="#D4785F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <ellipse cx="74" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+            <ellipse cx="126" cy="100" rx="8" ry="5" fill="#FFB5A0" opacity="0.4"/>
+            <path d="M60 200v-48c0-12 18-20 40-20s40 8 40 20v48H60z" fill="#2D2B55"/>
+          </svg>
+          <span style="position: absolute; top: -8px; right: -8px; font-size: 24px;">⭐</span>
+        </div>
+      </div>
+      <h2>Unlock Allie Premium</h2>
+      <div class="premium-features">
+        <div class="premium-feature">
+          <div class="feature-check">✓</div>
+          <div class="feature-text">Unlimited conversations</div>
+        </div>
+        <div class="premium-feature">
+          <div class="feature-check">✓</div>
+          <div class="feature-text">Voice practice</div>
+        </div>
+        <div class="premium-feature">
+          <div class="feature-check">✓</div>
+          <div class="feature-text">Detailed progress analytics</div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="hidePremium(event)">Start free trial</button>
+      <div class="premium-price">€6.99/month · Cancel anytime</div>
+    </div>
+  </div>
+
+  <!-- ===== TAB BAR ===== -->
+  <div class="tab-bar" id="tabBar">
+    <div class="tab-item active" onclick="switchTab('chat')" data-tab="chat">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <span>Chat</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('progress')" data-tab="progress">
+      <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      <span>Progress</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('words')" data-tab="words">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      <span>Words</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('profile')" data-tab="profile">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Profile</span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==================== STATE ==================== */
+let currentScreen = 'splash';
+let currentSlide = 0;
+let tabBarVisible = false;
+
+/* ==================== SCREEN ROUTER ==================== */
+function showScreen(id) {
+  const screens = document.querySelectorAll('.screen');
+  screens.forEach(s => { s.classList.remove('active'); s.scrollTop = 0; });
+
+  const target = document.getElementById(id);
+  if (target) {
+    target.classList.add('active');
+    currentScreen = id;
+  }
+
+  // Reset phone frame scroll (prevents unwanted scroll from focus events)
+  resetPhoneScroll();
+
+  // Status bar color
+  const statusBar = document.querySelector('.status-bar');
+  if (id === 'splash') {
+    statusBar.className = 'status-bar light';
+  } else {
+    statusBar.className = 'status-bar dark';
+  }
+
+  // Trigger animations for specific screens
+  if (id === 'chat') triggerChatAnimations();
+  if (id === 'progress') triggerProgressAnimations();
+  if (id === 'words') triggerStaggerAnimation('wordList');
+}
+
+/* ==================== SPLASH ==================== */
+setTimeout(() => {
+  showScreen('login');
+}, 2500);
+
+/* ==================== LOGIN ==================== */
+function loginAndProceed() {
+  showScreen('onboarding');
+}
+document.getElementById('loginSignIn').addEventListener('click', loginAndProceed);
+document.getElementById('loginCreateAccount').addEventListener('click', loginAndProceed);
+
+/* ==================== ONBOARDING ==================== */
+function nextOnboardingSlide() {
+  const slides = document.querySelectorAll('.onboarding-slide');
+  const dots = document.querySelectorAll('.onboarding-dot');
+  const btn = document.querySelector('.onboarding-footer .btn-primary');
+
+  if (currentSlide >= 2) {
+    // Start learning
+    showScreen('chat');
+    showTabBar();
+    return;
+  }
+
+  // Exit current slide
+  slides[currentSlide].classList.remove('active');
+  slides[currentSlide].classList.add('exit-left');
+
+  currentSlide++;
+
+  // Enter new slide
+  slides[currentSlide].classList.remove('exit-left');
+  slides[currentSlide].classList.add('active');
+
+  // Update dots
+  dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+
+  // Update button text
+  if (currentSlide === 2) {
+    btn.textContent = 'Start learning';
+  }
+}
+
+function selectPill(el) {
+  el.parentElement.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function selectGoal(el) {
+  el.parentElement.querySelectorAll('.goal-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ==================== TAB BAR ==================== */
+function showTabBar() {
+  const tabBar = document.getElementById('tabBar');
+  tabBar.classList.add('visible');
+  tabBarVisible = true;
+}
+
+function switchTab(tabName) {
+  // Update tab items
+  document.querySelectorAll('.tab-item').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tabName);
+  });
+
+  // Reset scroll on all screens and phone frame
+  document.querySelector('.phone-frame').scrollTop = 0;
+  document.querySelectorAll('.screen').forEach(s => s.scrollTop = 0);
+
+  showScreen(tabName);
+}
+
+/* ==================== CHAT ANIMATIONS ==================== */
+function triggerChatAnimations() {
+  const container = document.getElementById('chatMessages');
+  container.classList.remove('animate');
+  void container.offsetWidth; // force reflow
+  container.classList.add('animate');
+}
+
+/* ==================== VOICE OVERLAY ==================== */
+let voiceTimeout;
+function showVoiceOverlay() {
+  const overlay = document.getElementById('voiceOverlay');
+  const status = document.getElementById('voiceStatus');
+  overlay.classList.add('active');
+  status.textContent = 'Listening...';
+
+  clearTimeout(voiceTimeout);
+  // Cycle through states for demo, but don't auto-dismiss
+  voiceTimeout = setTimeout(() => {
+    status.textContent = 'Processing...';
+    voiceTimeout = setTimeout(() => {
+      status.textContent = 'Allie is responding...';
+    }, 2000);
+  }, 3000);
+}
+
+function hideVoiceOverlay(e) {
+  clearTimeout(voiceTimeout);
+  document.getElementById('voiceOverlay').classList.remove('active');
+}
+
+/* ==================== PROGRESS ANIMATIONS ==================== */
+function triggerProgressAnimations() {
+  // Ring animation
+  const ring = document.getElementById('progressRing');
+  const circumference = 2 * Math.PI * 65;
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = circumference;
+  setTimeout(() => {
+    ring.style.strokeDashoffset = circumference * (1 - 0.72);
+  }, 100);
+
+  // Bar chart animation
+  const bars = document.querySelectorAll('#barChart .bar');
+  bars.forEach((bar, i) => {
+    bar.style.height = '0';
+    setTimeout(() => {
+      bar.style.height = bar.dataset.height;
+    }, 200 + i * 100);
+  });
+
+  // Stat cards
+  triggerStaggerAnimation('statCards');
+}
+
+/* ==================== STAGGER HELPER ==================== */
+function triggerStaggerAnimation(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.classList.remove('animate');
+  void container.offsetWidth;
+  container.classList.add('animate');
+}
+
+/* ==================== WORDS ==================== */
+function selectWordTab(el) {
+  el.parentElement.querySelectorAll('.word-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function toggleWord(el) {
+  el.classList.toggle('expanded');
+}
+
+/* ==================== TOPIC CHIPS ==================== */
+function selectTopic(el) {
+  el.parentElement.querySelectorAll('.topic-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ==================== TRANSLATE ==================== */
+function toggleTranslation(el) {
+  const translation = el.nextElementSibling;
+  if (translation) {
+    translation.classList.toggle('visible');
+    // Scroll chat to show translation
+    const chatMessages = document.getElementById('chatMessages');
+    setTimeout(() => {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 50);
+  }
+}
+
+/* ==================== PREMIUM ==================== */
+function showPremium() {
+  document.getElementById('premiumOverlay').classList.add('active');
+}
+
+function hidePremium(e) {
+  document.getElementById('premiumOverlay').classList.remove('active');
+}
+
+/* ==================== PHONE FRAME SCROLL FIX ==================== */
+function resetPhoneScroll() {
+  document.querySelector('.phone-frame').scrollTop = 0;
+}
+
+// Prevent phone frame from scrolling due to focus events or content overflow
+document.querySelector('.phone-frame').addEventListener('scroll', function() {
+  this.scrollTop = 0;
+});
+</script>
+</body>
+</html>
